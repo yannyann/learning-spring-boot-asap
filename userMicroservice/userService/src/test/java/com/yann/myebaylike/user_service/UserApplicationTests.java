@@ -1,10 +1,10 @@
-package com.yann.myebaylike;
+package com.yann.myebaylike.user_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MyebaylikeApplicationTests {
+class UserApplicationTests {
 
 	@Test
 	void contextLoads() {
