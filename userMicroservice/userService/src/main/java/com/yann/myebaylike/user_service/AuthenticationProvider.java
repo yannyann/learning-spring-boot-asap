@@ -1,48 +1,57 @@
 package com.yann.myebaylike.user_service;
 
+import com.yann.myebaylike.user_service.models.User;
+import com.yann.myebaylike.user_service.repositories.JpaUserRepository;
+import com.yann.myebaylike.user_service.repositories.UserRepository;
+import com.yann.myebaylike.user_service.repositories.UserRepositoryAdapter;
+import com.yann.myebaylike.user_service.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.List;
 import java.util.Map;
-
-import static org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction.oauth2AuthorizedClient;
 
 @Configuration
 public class AuthenticationProvider {
 
-    /*@Bean
+    @Autowired
+    private UserService userService;
+
+    @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oauth2UserService(WebClient rest) {
         var delegate = new DefaultOAuth2UserService();
         return request -> {
             var user = delegate.loadUser(request);
-            if (!"github".equals(request.getClientRegistration().getRegistrationId())) {
-                return user;
-            }
 
-            var client = new OAuth2AuthorizedClient
-                    (request.getClientRegistration(), user.getName(), request.getAccessToken());
-            String url = user.getAttribute("organizations_url");
-            List<Map<String, Object>> orgs = rest
-                    .get().uri(url)
-                    .attributes(oauth2AuthorizedClient(client))
-                    .retrieve()
-                    .bodyToMono(List.class)
-                    .block();
+            Map attributes = user.getAttributes();
+            var userInfo = new User();
+            userInfo.setEmail((String) attributes.get("email"));
+            userInfo.setId((String) attributes.get("sub"));
+            userInfo.setImageUrl((String) attributes.get("picture"));
+            userInfo.setName((String) attributes.get("name"));
+            userService.updateUser(userInfo);
 
-            if (orgs.stream().anyMatch(org -> "spring-projects".equals(org.get("login")))) {
-                return user;
-            }
+            return user;
+        };
+    }
+/*
 
-            throw new OAuth2AuthenticationException(new OAuth2Error("invalid_token", "Not in Spring Team", ""));
+    @Bean
+    public OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService(WebClient rest, CustomOidcUserService customOidcUserService) {
+        return request -> {
+            var user = customOidcUserService.loadUser(request);
+
+            return user;
         };
     }*/
 }
